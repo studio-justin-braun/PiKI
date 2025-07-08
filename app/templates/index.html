@@ -1,33 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-  <meta charset="utf-8">
-  <title>Lokaler KI-Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/static/style.css">
+    <meta charset="utf-8">
+    <title>Lokaler KI‑Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="chatbox">
-    <h1>🤖 Lokaler KI-Chat</h1>
+<div class="container">
+    <h1>🤖 Lokaler KI‑Chat</h1>
+    <div class="upload">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="file" id="fileInput" accept="application/pdf">
+            <button type="submit">Dokument hochladen</button>
+        </form>
+    </div>
     <div id="chatlog" class="chatlog"></div>
-    <input type="text" id="message" placeholder="Nachricht eingeben">
-    <button onclick="sendMessage()">Senden</button>
-  </div>
-
-  <script>
-    async function sendMessage() {
-      const msg = document.getElementById("message").value;
-      if (!msg.trim()) return;
-      document.getElementById("chatlog").innerHTML += `<div class='user'>🧑: ${msg}</div>`;
-      document.getElementById("message").value = "";
-      const res = await fetch("/chat", {
-        method: "POST",
+    <div class="input-row">
+        <input type="text" id="message" placeholder="Nachricht eingeben">
+        <button id="sendBtn">Senden</button>
+    </div>
+</div>
+<script>
+async function sendMessage() {
+    const msgEl = document.getElementById('message');
+    const msg = msgEl.value;
+    if (!msg.trim()) return;
+    appendMessage('user', msg);
+    msgEl.value = '';
+    const res = await fetch('/chat', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg })
-      });
-      const data = await res.json();
-      document.getElementById("chatlog").innerHTML += `<div class='bot'>🤖: ${data.response}</div>`;
+    });
+    const data = await res.json();
+    appendMessage('bot', data.response);
+}
+function appendMessage(role, text) {
+    const div = document.createElement('div');
+    div.className = role;
+    div.textContent = (role === 'user' ? '🧑 ' : '🤖 ') + text;
+    document.getElementById('chatlog').appendChild(div);
+    div.scrollIntoView();
+}
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) return;
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    if (res.ok) {
+        alert('Dokument verarbeitet');
+        fileInput.value = '';
+    } else {
+        alert('Fehler beim Hochladen');
     }
-  </script>
+});
+</script>
 </body>
 </html>
