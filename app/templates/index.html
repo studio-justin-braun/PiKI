@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lokaler KI-Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="chatbox">
+    <h1>🤖 Lokaler KI-Chat</h1>
+    <div id="chatlog" class="chatlog"></div>
+    <input type="text" id="message" placeholder="Nachricht eingeben">
+    <button onclick="sendMessage()">Senden</button>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const msg = document.getElementById("message").value;
+      if (!msg.trim()) return;
+      document.getElementById("chatlog").innerHTML += `<div class='user'>🧑: ${msg}</div>`;
+      document.getElementById("message").value = "";
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      document.getElementById("chatlog").innerHTML += `<div class='bot'>🤖: ${data.response}</div>`;
+    }
+  </script>
+</body>
+</html>
